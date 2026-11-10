@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Lists installable PHP versions from github.com/ahmetbedir/php releases (oldest first).
+set -euo pipefail
+
+REPO="ahmetbedir/php"
+auth=()
+# GITHUB_TOKEN avoids the 60 requests/hour anonymous API limit
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+fi
+
+# Only tags starting with a digit (e.g. 8.4.27); skips extras-* releases
+curl -fsSL "${auth[@]+"${auth[@]}"}" "https://api.github.com/repos/$REPO/releases?per_page=100" \
+  | grep -o '"tag_name": *"[0-9][^"]*"' \
+  | sed 's/.*"\([^"]*\)"$/\1/' \
+  | sort -V \
+  | xargs echo
