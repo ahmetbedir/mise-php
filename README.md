@@ -1,6 +1,6 @@
 # mise-php
 
-A [mise](https://mise.jdx.dev) (asdf-compatible) plugin that installs prebuilt static PHP CLI binaries from [ahmetbedir/php](https://github.com/ahmetbedir/php/releases). Nothing is compiled on your machine.
+A [mise](https://mise.jdx.dev) plugin (vfox format) that installs prebuilt static PHP CLI binaries from [ahmetbedir/php](https://github.com/ahmetbedir/php/releases). Nothing is compiled on your machine.
 
 ## Usage
 
