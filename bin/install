@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# asdf fallback for hooks/pre_install.lua. Installs a static PHP CLI binary from github.com/ahmetbedir/php releases.
+set -euo pipefail
+
+REPO="ahmetbedir/php"
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is not set}"
+install_path="${ASDF_INSTALL_PATH:?ASDF_INSTALL_PATH is not set}"
+
+if [ "${ASDF_INSTALL_TYPE:-version}" != "version" ]; then
+  echo "Only release versions are supported (got install type: $ASDF_INSTALL_TYPE)" >&2
+  exit 1
+fi
+
+case "$(uname -m)" in
+  x86_64 | amd64) arch="x86_64" ;;
+  aarch64 | arm64) arch="aarch64" ;;
+  *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+esac
+
+case "$(uname -s)" in
+  Linux) platform="linux-$arch-musl" ;; # static musl build runs on any Linux distro
+  Darwin) platform="macos-$arch" ;;
+  *) echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
+esac
+
+url="https://github.com/$REPO/releases/download/$version/php-$version-$platform.tar.gz"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+echo "Downloading $url"
+if ! curl -fSL --progress-bar -o "$tmp/php.tar.gz" "$url"; then
+  echo "No build of PHP $version for $platform. See https://github.com/$REPO/releases/tag/$version" >&2
+  exit 1
+fi
+
+tar -xzf "$tmp/php.tar.gz" -C "$tmp" php
+mkdir -p "$install_path/bin"
+install -m 755 "$tmp/php" "$install_path/bin/php"
+
+"$install_path/bin/php" -v
